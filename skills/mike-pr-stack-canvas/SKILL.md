@@ -58,7 +58,8 @@ If missing, ask briefly:
 
 [Stats row: Done / PRs open / Approved / Unresolved / CI]
 
-Polled <ISO timestamp> · refreshes every 5m via agent loop
+Polled <relative age> · <Eastern local time> · refreshes every 5m via agent loop
+  (store ISO UTC in REVIEW_SNAPSHOT_AT; display with formatPolledAt)
 
 GitHub PRs card
   Row:  "PR N · <short title>"     Open PR #NNNN
