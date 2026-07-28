@@ -1,26 +1,61 @@
 # Skills
 
-Personal [Cursor Agent Skills](https://cursor.com/help/customization/skills) I share publicly.
+A collection of skills for AI coding agents. Skills follow the
+[Agent Skills](https://agentskills.io/) format and work with
+[`npx skills`](https://github.com/vercel-labs/skills).
+
+[![skills.sh](https://skills.sh/b/MikeCarbone/skills)](https://skills.sh/MikeCarbone/skills)
 
 ## Install
 
-Copy a skill folder into your Cursor skills directory:
-
 ```bash
-git clone https://github.com/MikeCarbone/skills.git
-cp -R skills/mike-pr-stack-canvas ~/.cursor/skills/
+# Interactive install
+npx skills add MikeCarbone/skills
+
+# Install a specific skill globally (recommended for personal workflows)
+npx skills add MikeCarbone/skills --skill mike-pr-stack-canvas -g -a cursor -y
+
+# List skills in this repo
+npx skills add MikeCarbone/skills -l
 ```
 
-Or clone this repo somewhere and symlink:
+Or with a full GitHub URL:
 
 ```bash
-ln -s /path/to/skills/mike-pr-stack-canvas ~/.cursor/skills/mike-pr-stack-canvas
+npx skills add https://github.com/MikeCarbone/skills
 ```
 
-Restart Cursor (or reload the window), then run the skill with `/skill-name` in Agent chat.
+## Available skills
 
-## Skills
+### mike-pr-stack-canvas
 
-| Skill | Description |
-| --- | --- |
-| [`mike-pr-stack-canvas`](./mike-pr-stack-canvas/) | Cursor Canvas tracker for a GitHub / Graphite PR stack (review state, CI, comments, branches) |
+Build and live-update a Cursor Canvas that tracks a Graphite/GitHub PR stack —
+review state, CI status, unresolved comments, and branch names.
+
+**Use when:**
+
+- Tracking a multi-PR Graphite stack
+- Monitoring CI / approvals / review comments across several PRs
+- Building a stack status canvas
+
+## Repository layout
+
+```text
+skills/
+  {skill-name}/
+    SKILL.md          # Required
+    scripts/          # Optional helpers the agent can run
+    references/       # Optional docs loaded on demand
+```
+
+This matches the discovery paths used by `npx skills add`.
+
+## Creating a new skill
+
+```bash
+npx skills init my-skill-name
+# then move it under skills/ if created at the repo root:
+# mv my-skill-name skills/
+```
+
+See [AGENTS.md](./AGENTS.md) for conventions when editing this repo.

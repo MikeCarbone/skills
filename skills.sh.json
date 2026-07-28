@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Pull requests",
+      "description": "Skills for tracking and shipping stacked pull requests.",
+      "skills": ["mike-pr-stack-canvas"]
+    }
+  ]
+}

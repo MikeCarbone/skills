@@ -117,13 +117,17 @@ Static stack metadata (`title`, `summary`, `files`, `notes`, `prUrl`, `prNumber`
 
 ### 2. Initial poll
 
-Resolve the skill directory, then run the poll script (or equivalent `gh` queries):
+Resolve this skill’s install directory, then run the poll script (or equivalent
+`gh` queries):
 
 ```bash
-python3 <skill-root>/scripts/poll-pr-stack.py \
+python3 scripts/poll-pr-stack.py \
   --owner <owner> --repo <repo> \
   101 102 103
 ```
+
+When the skill is installed via `npx skills`, run the script from the installed
+skill folder (for Cursor global installs, typically under `~/.cursor/skills/`).
 
 Write results into `REVIEW_SNAPSHOT` / `REVIEW_SNAPSHOT_AT`.
 
