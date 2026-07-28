@@ -34,6 +34,9 @@ Also read the canvas skill before writing `.canvas.tsx` files.
 6. Top links: issue tracker URL (if any) + **Graphite stack** URL (base/bottom PR).
 7. Keep polling via an agent `/loop` that rewrites `REVIEW_SNAPSHOT*` constants.
 8. On loop ticks, reply with a **short delta** only (what changed).
+9. Add a **Refresh now** button via `useCanvasAction` → `newComposerChat` with a
+   poll prompt. Canvas cannot fetch GitHub itself; the button opens a chat that
+   asks an agent to rewrite the snapshot.
 
 ## Inputs to gather
 
@@ -144,7 +147,30 @@ Prompt each tick should:
 
 Default interval: **5 minutes**. Stop when the user says to stop the loop.
 
-### 4. Link the canvas
+### 4. Manual refresh button
+
+Canvas UI cannot call GitHub. Add a button that dispatches:
+
+```tsx
+const dispatch = useCanvasAction();
+
+<Button
+  variant="secondary"
+  onClick={() =>
+    dispatch({
+      type: "newComposerChat",
+      userPrompt: REFRESH_PROMPT, // same poll instructions as the loop
+    })
+  }
+>
+  Refresh now
+</Button>
+```
+
+`newComposerChat` opens a new agent chat with the canvas `@`-mentioned and runs
+the refresh prompt there. Keep `REFRESH_PROMPT` in sync with the loop prompt.
+
+### 5. Link the canvas
 
 In the chat reply, link the `.canvas.tsx` with a short label so the user can open it beside chat.
 
