@@ -27,7 +27,7 @@ Read all three before doing anything. Write them back after every change.
 
 **Times are global.** Always copy `defaults.json` `times` onto the job. A venue or a single job may override only if Mike says so for that restaurant or that ask. Do not store a copy of the list on each venue.
 
-API and DOM details: [references/api.md](references/api.md).
+API and DOM details: [references/api.md](references/api.md). Drop-time edges: [references/execute.md](references/execute.md).
 
 ## What Mike means
 
@@ -84,20 +84,11 @@ Unknown drop → assume `10:00` America/New_York and `days_ahead: 30`, and say s
 
 ## Execute (drop time)
 
-Need a logged-in Resy tab in the Cursor browser. If the profile icon is missing, stop and ask Mike to sign in.
+Need a logged-in Resy tab. If the profile icon is missing, stop and ask Mike to sign in.
 
-Fast path — skip the venue page UI:
+Follow [references/execute.md](references/execute.md).
 
-1. Set job `running`.
-2. Warm session: `GET /3/auth/refresh` with cookies.
-3. At `drop_at` (or immediately if he said go): `POST /4/find` with `{ venue_id, day, party_size }`.
-4. Do **not** poll `/4/venue/calendar`.
-5. From `slots[]`, pick `config.token` using **Pick a time**.
-6. `GET /3/details?commit=1&config_id={token}&day={date}&party_size={n}` → `book_token` (~5 min).
-7. If `confirm` is false: open the widget or leave the hold, set status `held`, **do not** `POST /3/book` or click Reserve Now. Report the chosen time and that you stopped.
-8. If `confirm` is true: `POST /3/book` with `book_token`, saved `struct_payment_method` if the venue is paid, `venue_marketing_opt_in=0`. Then set `booked` or `failed`.
-
-If `/4/find` returns no window slots, retry find only (not the page). If still empty after ~15s, mark `failed` and say so.
+**Do not poll with agent tool calls.** Inject `scripts/run-drop.js` once and `await runResyDrop(job)`. Find polling is **400ms for 8s, then 1.5s**, not 100ms. 429 backs off `Retry-After` or 5s. Chat stays out of the hot path.
 
 Headers: `Authorization: ResyAPI api_key="VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5"`, `x-origin: https://resy.com`, cookies from the signed-in browser.
 
@@ -107,12 +98,7 @@ Applies to every restaurant. Source of truth is `~/.cursor/resy/defaults.json` �
 
 `8:00, 8:15, 7:45, 8:30, 7:30, 8:45, 7:15, 7:00, 9:00, 6:45, 6:30`
 
-Resolution order: `job.times` → `venue.defaults.times` (only if Mike overrode that venue) → `defaults.json` `times`. First match wins.
-
-1. Collect slots whose `date.start` local time is in `[window.start, window.end]`.
-2. Walk `times` in order. Take the first slot whose clock time matches.
-3. If a listed time is missing (15 vs 30 min grid), skip it.
-4. If none of the listed times exist, take no slot — mark `failed` and report what *was* available in the window. Do not invent a fallback outside the list unless Mike says "any time in the window".
+`job.times` → `venue.defaults.times` → `defaults.json` `times`. First **currently available** match wins. A missing or just-taken time is a skip, not a fail.
 
 ## Rules
 
