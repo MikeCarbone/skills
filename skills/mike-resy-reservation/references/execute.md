@@ -19,6 +19,8 @@ If the evaluate returns before the script finishes, read `window.__resyDrop` onc
 ```js
 {
   venue_id: 6194,
+  lat: 0,
+  long: 0,
   day: "2026-10-02",
   party_size: 4,
   times: ["20:00", "20:15", "19:45", "20:30", "19:30", "20:45", "19:15", "19:00", "21:00", "18:45", "18:30"],

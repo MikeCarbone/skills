@@ -12,7 +12,7 @@ Also send `x-origin: https://resy.com` or `https://widgets.resy.com` and the sig
 |---|---|---|
 | Venue | `GET /3/venue?url_slug=&location=` | id, flags, recaptcha |
 | Calendar | `GET /4/venue/calendar?venue_id=&num_seats=&start_date=&end_date=` | Slow (500ms+). Do not poll. |
-| Slots | `POST /4/find` JSON `{ venue_id, day, party_size }` | ~80–180ms. `slots[].config.token` |
+| Slots | `POST /4/find` JSON `{ venue_id, day, party_size, lat, long }` | ~80–180ms. `slots[].config.token`. Some venues (4 Charles) **400** without `lat`/`long`. `0,0` is enough. |
 | Hold | `GET /3/details?commit=1&config_id=&day=&party_size=` | ~110–170ms. `book_token` expires ~5 min. POST form-urlencoded gets 415. |
 | Book | `POST /3/book` form-encoded | Only if `confirm: true` |
 | Auth | `GET /3/auth/refresh` | Warm the session |

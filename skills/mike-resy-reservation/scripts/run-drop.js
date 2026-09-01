@@ -58,7 +58,9 @@ async function runResyDrop(job) {
       body: JSON.stringify({
         venue_id: job.venue_id,
         day: job.day,
-        party_size: job.party_size
+        party_size: job.party_size,
+        lat: job.lat != null ? job.lat : 0,
+        long: job.long != null ? job.long : 0
       })
     });
   }
