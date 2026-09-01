@@ -6,6 +6,11 @@
       "title": "Pull requests",
       "description": "Skills for tracking and shipping stacked pull requests.",
       "skills": ["mike-pr-stack-canvas"]
+    },
+    {
+      "title": "Reservations",
+      "description": "Skills for queueing and grabbing restaurant reservations.",
+      "skills": ["mike-resy-reservation"]
     }
   ]
 }

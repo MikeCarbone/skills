@@ -14,6 +14,7 @@ npx skills add MikeCarbone/skills
 
 # Install a specific skill globally (recommended for personal workflows)
 npx skills add MikeCarbone/skills --skill mike-pr-stack-canvas -g -a cursor -y
+npx skills add MikeCarbone/skills --skill mike-resy-reservation -g -a cursor -y
 
 # List skills in this repo
 npx skills add MikeCarbone/skills -l
@@ -37,6 +38,18 @@ review state, CI status, unresolved comments, and branch names.
 - Tracking a multi-PR Graphite stack
 - Monitoring CI / approvals / review comments across several PRs
 - Building a stack status canvas
+
+### mike-resy-reservation
+
+Queue and grab Resy reservations from a signed-in Cursor browser session.
+Global time preference applies to every restaurant. Dry-run unless you say
+to book.
+
+**Use when:**
+
+- Queueing a table ("grab me Carbone")
+- Running a drop at the venue release time
+- Checking or canceling the Resy queue
 
 ## Repository layout
 
