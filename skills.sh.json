@@ -11,6 +11,11 @@
       "title": "Reservations",
       "description": "Skills for queueing and grabbing restaurant reservations.",
       "skills": ["mike-resy-reservation"]
+    },
+    {
+      "title": "Writing",
+      "description": "Skills for personal voice and prose.",
+      "skills": ["mike-language-style-guide"]
     }
   ]
 }

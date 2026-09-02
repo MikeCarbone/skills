@@ -28,6 +28,13 @@ npx skills add https://github.com/MikeCarbone/skills
 
 ## Available skills
 
+### mike-language-style-guide
+
+Write PR descriptions, commit messages, Slack posts, and other prose in Mike
+Carbone's personal voice.
+
+**Use when:** writing text on Mike's behalf, or when asked for "my voice" / "mike style"
+
 ### mike-pr-stack-canvas
 
 Build and live-update a Cursor Canvas that tracks a Graphite/GitHub PR stack —
