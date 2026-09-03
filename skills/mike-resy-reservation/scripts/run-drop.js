@@ -1,6 +1,11 @@
-// Injected once via Runtime.evaluate. Polls and books in-page.
-// Do not drive this from an agent loop.
+// Injected once via Runtime.evaluate. Lives in the page until drop, then books.
+// Inject at T-10 min or earlier — never at drop. Do not drive from an agent loop.
 async function runResyDrop(job) {
+  if (window.__resyDropRunning) {
+    return window.__resyDrop || { ok: false, status: "already_running" };
+  }
+  window.__resyDropRunning = true;
+
   const API = "https://api.resy.com";
   const headers = {
     authorization: 'ResyAPI api_key="VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5"',
@@ -103,38 +108,43 @@ async function runResyDrop(job) {
     return (first && first.id) || null;
   }
 
-  function looksSignedIn(body) {
-    if (!body || typeof body !== "object") return false;
-    if (body.message) return false;
-    return !!(body.first_name || body.last_name || body.em_address || body.id || (body.payload && (body.payload.id || body.payload.first_name)));
+  function domSignedIn() {
+    return !!document.querySelector('[data-test-id="menu_container-button-profile_photo"]');
   }
 
-  async function warmAuth() {
-    const tries = [
-      { method: "POST", path: "/3/auth/refresh" },
-      { method: "GET", path: "/3/auth/refresh" },
-      { method: "GET", path: "/3/user" }
-    ];
-    let ok = false;
-    for (const t of tries) {
-      const r = await req(`${API}${t.path}`, { method: t.method, headers });
-      const hit = r && r.status === 200 && looksSignedIn(r.body);
-      log.push({ event: "auth", method: t.method, path: t.path, status: r && r.status, ok: hit, ms: Date.now() - tStart });
-      if (hit) { ok = true; break; }
-    }
-    return ok;
+  async function keepalive() {
+    try {
+      await fetch("https://api.resy.com/3/venue?url_slug=carbone&location=new-york-ny", {
+        credentials: "include",
+        headers
+      });
+    } catch (_) { /* tab stay-awake only */ }
   }
 
   const dropAt = Date.parse(job.drop_at);
   const poll = job.poll || {};
   const fastInterval = poll.interval_ms != null ? poll.interval_ms : 400;
-  const slowInterval = poll.interval_after_ms != null ? poll.interval_after_ms : 1500;
-  const preInterval = poll.interval_before_ms != null ? poll.interval_before_ms : 1500;
+  const warmInterval = poll.interval_before_ms != null ? poll.interval_before_ms : 1500;
+  const keepEvery = poll.keepalive_ms != null ? poll.keepalive_ms : 20000;
+  const warmFor = poll.warm_for_ms != null ? poll.warm_for_ms : 120000;
+  const lead = poll.lead_ms != null ? poll.lead_ms : 500;
   const timeout = poll.timeout_ms != null ? poll.timeout_ms : 45000;
-  const pollEnd = dropAt + timeout;
+  const lateBurst = poll.late_burst_ms != null ? poll.late_burst_ms : 20000;
+  const untilDrop = dropAt - Date.now();
+  const late = untilDrop < 0;
+  const warmStart = dropAt - warmFor;
+  const fastStart = dropAt - lead;
+  const pollEnd = Math.max(dropAt + timeout, Date.now() + (late ? lateBurst : 0));
 
-  const signedIn = await warmAuth();
-  log.push({ event: "start", signed_in: signedIn, drop_at: job.drop_at, now_ms: Date.now() - tStart, until_drop_ms: dropAt - Date.now() });
+  const signedIn = domSignedIn();
+  log.push({
+    event: "start",
+    signed_in: signedIn,
+    drop_at: job.drop_at,
+    now_ms: Date.now() - tStart,
+    until_drop_ms: untilDrop,
+    late
+  });
 
   const seen = {
     first_slots_ms: null,
@@ -146,9 +156,26 @@ async function runResyDrop(job) {
     rate_limits: 0
   };
   const unique = new Set();
-
   let finds = 0;
+
+  function finish(result) {
+    window.__resyDropRunning = false;
+    window.__resyDrop = result;
+    return result;
+  }
+
+  // Far from drop: chunked sleep + keepalive so background timers do not die.
+  // Do not /4/find yet (hours of finds are useless and noisy).
+  while (Date.now() < warmStart && Date.now() < pollEnd) {
+    await keepalive();
+    log.push({ event: "keepalive", ms: Date.now() - tStart, until_drop_ms: dropAt - Date.now() });
+    const wait = Math.min(keepEvery, warmStart - Date.now(), pollEnd - Date.now());
+    if (wait > 0) await sleep(wait);
+  }
+
   while (Date.now() < pollEnd) {
+    const now = Date.now();
+    const phase = now < fastStart ? "warm" : (now < dropAt ? "lead" : "drop");
     const f = await find();
     finds += 1;
     const status = f && f.status;
@@ -158,7 +185,6 @@ async function runResyDrop(job) {
     const allTimes = slotTimes(slots);
     const list = leftovers(slots);
     const ranked = list.map((x) => x.time);
-    const phase = Date.now() < dropAt ? "pre" : "drop";
 
     if (status === 429) {
       seen.rate_limits += 1;
@@ -184,7 +210,7 @@ async function runResyDrop(job) {
     });
 
     if (!list.length) {
-      const gap = Date.now() < dropAt ? preInterval : fastInterval;
+      const gap = now < fastStart ? warmInterval : fastInterval;
       await sleep(gap);
       continue;
     }
@@ -203,24 +229,18 @@ async function runResyDrop(job) {
         continue;
       }
       if (!job.confirm) {
-        const result = { ok: true, status: "held", time: slot.time, finds, ms: Date.now() - tStart, signed_in: signedIn, seen, log };
-        window.__resyDrop = result;
-        return result;
+        return finish({ ok: true, status: "held", time: slot.time, finds, ms: Date.now() - tStart, signed_in: signedIn, seen, log });
       }
       const payId = paymentIdFrom(d.body);
       const b = await book(token, payId);
       const ok = b.status >= 200 && b.status < 300 && !(b.body && (b.body.status >= 400 || b.body.message === "error"));
       if (ok) {
         log.push({ event: "booked", time: slot.time, status: b.status, ms: Date.now() - tStart });
-        const result = { ok: true, status: "booked", time: slot.time, finds, ms: Date.now() - tStart, signed_in: signedIn, seen, log };
-        window.__resyDrop = result;
-        return result;
+        return finish({ ok: true, status: "booked", time: slot.time, finds, ms: Date.now() - tStart, signed_in: signedIn, seen, log });
       }
       log.push({ event: "book_miss", time: slot.time, status: b.status, msg: (b.body && (b.body.message || b.body.title)) || null, ms: Date.now() - tStart });
     }
   }
 
-  const result = { ok: false, status: "failed", finds, ms: Date.now() - tStart, signed_in: signedIn, seen, log };
-  window.__resyDrop = result;
-  return result;
+  return finish({ ok: false, status: "failed", finds, ms: Date.now() - tStart, signed_in: signedIn, seen, log });
 }

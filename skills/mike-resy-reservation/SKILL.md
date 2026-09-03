@@ -49,7 +49,7 @@ If restaurant, party size, or date is missing, use `defaults.json`, then venue o
 3. Build a job and append it to `queue.json`. `id` = `{slug}-{date}-{party_size}` — replace if the same id already exists.
 4. Reply with one block: restaurant, date, party, window, ranked times, drop time, **dry-run vs book**, job id.
 
-Do not start a wait-loop unless he asks. Tell him to ping at drop time, or to say "arm a loop" if he wants this session to sit on it.
+Do not start a wait-loop unless he asks. When arming, wake at **T−10 min** to inject the runner (not T−2). Tell him the tab must stay on `resy.com` and signed in.
 
 ### Job shape
 
@@ -88,7 +88,7 @@ Need a logged-in Resy tab. If the profile icon is missing, stop and ask Mike to 
 
 Follow [references/execute.md](references/execute.md).
 
-**Do not poll with agent tool calls.** At wake (T−2 min), inject `scripts/run-drop.js` immediately and `await runResyDrop(job)`. Do not reread this file first. Pre-drop finds are **1.5s**; after drop stay at **400ms until a ranked time** or +45s. Not 100ms. 429 backs off `Retry-After` or 5s. Always pass `lat`/`long` (`0,0` is fine). Every find logs all returned times onto `result.log` / `result.seen` — write that onto the job.
+**Do not poll with agent tool calls.** Inject `scripts/run-drop.js` at **T−10 min** (or when arming, if drop is soon). The script must already be in the page at drop. Do not reread this file at wake. If `__resyDropRunning`, do not inject again. Keepalive until T−2 min, warm find 1.5s, then **400ms from T−500ms** until a ranked time or +45s. Late inject still does a 20s burst. Always pass `lat`/`long`. Write `result.seen` onto the job.
 
 Headers: `Authorization: ResyAPI api_key="VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5"`, `x-origin: https://resy.com`, cookies from the signed-in browser.
 
