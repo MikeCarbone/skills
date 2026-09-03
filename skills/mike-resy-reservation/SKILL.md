@@ -88,7 +88,7 @@ Need a logged-in Resy tab. If the profile icon is missing, stop and ask Mike to 
 
 Follow [references/execute.md](references/execute.md).
 
-**Do not poll with agent tool calls.** Inject `scripts/run-drop.js` once and `await runResyDrop(job)`. Find polling is **400ms for 8s, then 1.5s**, not 100ms. 429 backs off `Retry-After` or 5s. Chat stays out of the hot path. Always pass `lat`/`long` on find (`0,0` is fine; some venues 400 without them).
+**Do not poll with agent tool calls.** At wake (T−2 min), inject `scripts/run-drop.js` immediately and `await runResyDrop(job)`. Do not reread this file first. Pre-drop finds are **1.5s**; after drop stay at **400ms until a ranked time** or +45s. Not 100ms. 429 backs off `Retry-After` or 5s. Always pass `lat`/`long` (`0,0` is fine). Every find logs all returned times onto `result.log` / `result.seen` — write that onto the job.
 
 Headers: `Authorization: ResyAPI api_key="VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5"`, `x-origin: https://resy.com`, cookies from the signed-in browser.
 

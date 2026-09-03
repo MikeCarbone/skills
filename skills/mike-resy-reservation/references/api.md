@@ -15,7 +15,7 @@ Also send `x-origin: https://resy.com` or `https://widgets.resy.com` and the sig
 | Slots | `POST /4/find` JSON `{ venue_id, day, party_size, lat, long }` | ~80–180ms. `slots[].config.token`. Some venues (4 Charles) **400** without `lat`/`long`. `0,0` is enough. |
 | Hold | `GET /3/details?commit=1&config_id=&day=&party_size=` | ~110–170ms. `book_token` expires ~5 min. POST form-urlencoded gets 415. |
 | Book | `POST /3/book` form-encoded | Only if `confirm: true` |
-| Auth | `GET /3/auth/refresh` | Warm the session |
+| Auth | `POST /3/auth/refresh` (then GET, then `/3/user`) | GET refresh is **405** from the page. Log status only; do not dump the user body. |
 
 `/4/find` slot token:
 
@@ -52,3 +52,8 @@ Cold page load to slots visible ≈ 1.2s. Click → widget details done ≈ 0.6s
 - details: 114–173ms
 - find+details: 200–271ms
 - calendar: 484–974ms
+
+## Drop logs (2026-09-02)
+
+- 4 Charles: runner issued **0** finds. 50ms wait loop + background-tab timer throttle slept past 9:00:45.
+- Carbone: **53** finds, all **200**, no 429. No ranked 6:30–9:00 times. Post-run leftovers were lunch 11:30–1:45 and 11:15/11:30pm. Logger only kept find #1, so we could not see per-poll slot lists. Fixed: log every find's `times` + `seen` summary.
