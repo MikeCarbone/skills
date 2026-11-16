@@ -58,6 +58,17 @@ to book.
 - Running a drop at the venue release time
 - Checking or canceling the Resy queue
 
+### captioned-gif
+
+Turn a sequence of screenshots into a captioned animated GIF with a colored
+bottom caption bar and per-frame timing.
+
+**Use when:**
+
+- Making a before/after or step-by-step demo GIF from stills
+- Attaching a visual to a PR
+- Captioning screenshots into a short annotated animation
+
 ## Repository layout
 
 ```text

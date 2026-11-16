@@ -1,0 +1,13 @@
+{
+  "output": "demo.gif",
+  "width": 1200,
+  "crop": [0, 0, 1366, 556],
+  "default_duration": 2000,
+  "frames": [
+    {"image": "01-start.png",   "caption": "Open the flow → click the action",        "color": "neutral"},
+    {"image": "02-open.png",    "caption": "First action works as expected",           "color": "neutral"},
+    {"image": "03-retry.png",   "caption": "Cancel, then repeat the exact same action", "color": "neutral"},
+    {"image": "04-broken.png",  "caption": "Before: nothing happens",                  "color": "red",   "duration": 2300},
+    {"image": "05-fixed.png",   "caption": "After the fix: it works every time",       "color": "green", "duration": 2700}
+  ]
+}
